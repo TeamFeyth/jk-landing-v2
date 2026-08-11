@@ -1,0 +1,42 @@
+---
+import Icon from './Icon.astro';
+import LeadForm from './LeadForm.astro';
+import { hero, form } from '../data/copy';
+import { heroImages } from '../data/site';
+---
+
+<section class="hero" id="top">
+  <div class="container hero__grid">
+    <div class="hero__copy">
+      <p class="t-eyebrow hero__badge">{hero.badge}</p>
+
+      <h1 class="t-hero hero__headline">{hero.headline}</h1>
+      <p class="t-body-lg hero__sub">{hero.subheadline}</p>
+
+      <ul class="hero__list">
+        {hero.bullets.map((bullet) => (
+          <li class="hero__list-item">
+            <Icon name="check" class="hero__check" />
+            <span>{bullet}</span>
+          </li>
+        ))}
+      </ul>
+
+      <p class="hero__rating">
+        <span class="stars" aria-hidden="true">★★★★★</span>
+        <span class="t-caption">{hero.rating}</span>
+      </p>
+    </div>
+
+    <div class="hero__form">
+      <LeadForm instance="hero" heading={form.headings.hero} id="hero-form" />
+    </div>
+  </div>
+</section>
+
+<style define:vars={{ heroMobile: `url('${heroImages.mobile}')`, heroDesktop: `url('${heroImages.desktop}')` }}>
+  .hero {
+    --hero-mobile: var(--heroMobile);
+    --hero-desktop: var(--heroDesktop);
+  }
+</style>

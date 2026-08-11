@@ -1,0 +1,23 @@
+---
+import { process } from '../data/copy';
+---
+
+<section class="section" id="how-it-works">
+  <div class="container">
+    <div class="section-intro">
+      <p class="t-eyebrow section-intro__eyebrow">{process.eyebrow}</p>
+      <h2 class="t-h2 section-intro__heading">{process.heading}</h2>
+      <p class="t-body-lg section-intro__body">{process.subhead}</p>
+    </div>
+
+    <ol class="steps">
+      {process.steps.map((step, index) => (
+        <li class="step">
+          <span class="step__number">{String(index + 1).padStart(2, '0')}</span>
+          <h3 class="t-h3 step__title">{step.title}</h3>
+          <p class="step__body">{step.body}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

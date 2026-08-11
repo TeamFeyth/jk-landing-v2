@@ -1,0 +1,24 @@
+---
+import LeadForm from './LeadForm.astro';
+import { bottom, form } from '../data/copy';
+---
+
+<section class="bottom-block" id="get-approved">
+  <div class="container bottom-block__grid">
+    <div>
+      <p class="t-eyebrow bottom-block__eyebrow">{bottom.eyebrow}</p>
+      <h2 class="t-h2 bottom-block__heading">{bottom.heading}</h2>
+      <p class="t-body-lg bottom-block__body">{bottom.paragraph}</p>
+
+      <ul class="badges">
+        {bottom.badges.map((badge) => (
+          <li class="badge">{badge}</li>
+        ))}
+      </ul>
+    </div>
+
+    <div>
+      <LeadForm instance="bottom" heading={form.headings.bottom} id="bottom-form" />
+    </div>
+  </div>
+</section>

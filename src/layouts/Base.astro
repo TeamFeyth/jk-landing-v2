@@ -1,0 +1,55 @@
+---
+import '@fontsource/archivo/400.css';
+import '@fontsource/archivo/500.css';
+import '@fontsource/archivo/600.css';
+import '@fontsource/archivo/700.css';
+import '@fontsource/archivo-black/400.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import '../styles/components.css';
+
+import CookieConsent from '../components/CookieConsent.astro';
+import FloatingCall from '../components/FloatingCall.astro';
+import MetaPixel from '../components/MetaPixel.astro';
+import Recaptcha from '../components/Recaptcha.astro';
+import { ALLOW_INDEXING } from '../lib/env';
+import { site, meta } from '../data/site';
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = new URL(meta.ogImage, Astro.site).href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{meta.title}</title>
+    <meta name="description" content={meta.description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    {!ALLOW_INDEXING && <meta name="robots" content="noindex, nofollow" />}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={meta.title} />
+    <meta property="og:description" content={meta.description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="preconnect" href="https://cdn-thumbor.autodealersdigital.com" crossorigin />
+    <link rel="preconnect" href="https://connect.facebook.net" crossorigin />
+    <link rel="preconnect" href="https://www.google.com" crossorigin />
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <slot />
+    <FloatingCall />
+    <CookieConsent />
+    <MetaPixel />
+    <Recaptcha />
+  </body>
+</html>

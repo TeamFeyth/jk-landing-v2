@@ -1,0 +1,71 @@
+---
+import Icon from './Icon.astro';
+import LeadForm from './LeadForm.astro';
+import { form } from '../data/copy';
+import { behavior } from '../data/site';
+---
+
+<div
+  class="popup"
+  data-popup
+  data-trigger={String(behavior.popupScrollTrigger)}
+  data-max-width={String(behavior.popupMaxViewportWidth)}
+  role="dialog"
+  aria-modal="true"
+  aria-label={form.headings.popup}
+>
+  <div class="popup__panel" data-popup-panel>
+    <button class="popup__close" type="button" data-popup-close aria-label={form.closePopup}>
+      <Icon name="close" />
+    </button>
+    <LeadForm instance="popup" heading={form.headings.popup} id="popup-form" />
+  </div>
+</div>
+
+<script>
+  const popup = document.querySelector<HTMLElement>('[data-popup]');
+
+  if (popup) {
+    const panel = popup.querySelector<HTMLElement>('[data-popup-panel]');
+    const closeButton = popup.querySelector<HTMLElement>('[data-popup-close]');
+    const trigger = Number(popup.dataset.trigger ?? '0.5');
+    const maxWidth = Number(popup.dataset.maxWidth ?? '767');
+
+    let shown = false;
+
+    function open(): void {
+      if (shown) return;
+      shown = true;
+      popup!.dataset.open = 'true';
+      document.body.style.overflow = 'hidden';
+      closeButton?.focus({ preventScroll: true });
+    }
+
+    function close(): void {
+      popup!.dataset.open = 'false';
+      document.body.style.overflow = '';
+    }
+
+    function onScroll(): void {
+      if (shown) return;
+      if (window.innerWidth > maxWidth) return;
+      const scrolled = window.scrollY + window.innerHeight;
+      const total = document.documentElement.scrollHeight;
+      if (total > 0 && scrolled / total >= trigger) open();
+    }
+
+    if (window.innerWidth <= maxWidth) {
+      window.addEventListener('scroll', onScroll, { passive: true });
+    }
+
+    closeButton?.addEventListener('click', close);
+
+    popup.addEventListener('click', (event) => {
+      if (panel && !panel.contains(event.target as Node)) close();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && popup.dataset.open === 'true') close();
+    });
+  }
+</script>

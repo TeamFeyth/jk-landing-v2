@@ -1,0 +1,99 @@
+:root {
+  /* Color — núcleo */
+  --signal-red: #e63329;
+  --signal-red-hover: #c42a21;
+  --ink-black: #111418;
+  --pure-white: #ffffff;
+
+  /* Color — apoyo y funcional (hex por confirmar salvo Hairline) */
+  --lot-navy: #16283c;
+  --slate: #5b6472;
+  --hairline: #dcdfe4;
+  --concrete: #f2f4f6;
+  --approved: #1d7a3e;
+  --caution: #b4540a;
+
+  /* Tipografía — familias */
+  --font-display: 'Archivo Black', 'Arial Black', Arial, sans-serif;
+  --font-body: 'Archivo', Arial, Helvetica, sans-serif;
+
+  /* Tipografía — escala móvil */
+  --fs-hero: clamp(28px, 8.4vw, 40px);
+  --fs-h1: clamp(24px, 6.6vw, 30px);
+  --fs-h2: clamp(21px, 5.4vw, 24px);
+  --fs-h3: 20px;
+  --fs-eyebrow: 11px;
+  --fs-body-lg: 18px;
+  --fs-body: 16px;
+  --fs-button: 14px;
+  --fs-price: 24px;
+  --fs-caption: 12px;
+
+  --lh-hero: 0.95;
+  --lh-h1: 1.05;
+  --lh-h2: 1.15;
+  --lh-h3: 1.25;
+  --lh-eyebrow: 1.2;
+  --lh-body-lg: 1.6;
+  --lh-body: 1.65;
+  --lh-price: 1.1;
+  --lh-caption: 1.5;
+
+  --tr-hero: -0.015em;
+  --tr-h1: -0.01em;
+  --tr-eyebrow: 0.16em;
+  --tr-button: 0.04em;
+  --tr-price: -0.01em;
+
+  /* Espaciado */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-24: 96px;
+
+  /* Contenedores y grid */
+  --container-max: 1280px;
+  --page-margin: 20px;
+  --gutter: 32px;
+  --measure: 680px;
+  --section-padding: 64px;
+
+  /* Foto de la tarjeta de vehiculo */
+  --vehicle-photo-ratio: 16 / 9;
+
+  /* Radios */
+  --radius: 2px;
+  --radius-chip: 50%;
+
+  /* Botones */
+  --btn-h-lg: 56px;
+  --btn-h-md: 48px;
+  --btn-h-sm: 40px;
+  --btn-pad-lg: 18px 36px;
+  --btn-pad-md: 14px 28px;
+  --btn-pad-sm: 11px 20px;
+  --btn-max-width: 480px;
+  --btn-border: 2px;
+  --btn-transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
+
+  /* Capas */
+  --z-floating: 50;
+  --z-consent: 60;
+  --z-popup: 70;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --fs-hero: clamp(40px, 5.4vw, 56px);
+    --fs-h1: clamp(30px, 3.9vw, 40px);
+    --fs-h2: clamp(24px, 2.7vw, 28px);
+    --fs-button: 16px;
+    --page-margin: 48px;
+    --section-padding: 96px;
+  }
+}

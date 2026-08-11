@@ -1,0 +1,28 @@
+---
+import VehicleCard from './VehicleCard.astro';
+import { vehiclesSection as copy } from '../data/copy';
+import { vehicles } from '../data/vehicles';
+import { site } from '../data/site';
+---
+
+<section class="section" id="vehicles">
+  <div class="container">
+    <div class="section-intro">
+      <p class="t-eyebrow section-intro__eyebrow">{copy.eyebrow}</p>
+      <h2 class="t-h2 section-intro__heading">{copy.heading}</h2>
+      <p class="t-body-lg section-intro__body">{copy.paragraph}</p>
+    </div>
+
+    <div class="vehicle-grid">
+      {vehicles.map((vehicle, index) => (
+        <VehicleCard vehicle={vehicle} loading={index === 0 ? 'eager' : 'lazy'} />
+      ))}
+    </div>
+
+    <div class="vehicles__footer">
+      <a class="btn btn--secondary btn--lg" href={site.links.inventory} rel="noopener">
+        {copy.viewAll}
+      </a>
+    </div>
+  </div>
+</section>

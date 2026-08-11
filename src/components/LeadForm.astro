@@ -1,0 +1,246 @@
+---
+import { form as copy } from '../data/copy';
+
+interface Props {
+  instance: 'hero' | 'bottom' | 'popup';
+  heading: string;
+  id: string;
+}
+
+const { instance, heading, id } = Astro.props;
+
+const textFields = ([
+  {
+    key: 'name',
+    type: 'text',
+    autocomplete: 'name',
+    label: copy.fields.name,
+    error: copy.errors.name,
+    placeholder: ' ',
+    raised: false,
+  },
+  {
+    key: 'phone',
+    type: 'tel',
+    autocomplete: 'tel',
+    label: copy.fields.phone,
+    error: copy.errors.phone,
+    placeholder: copy.phonePlaceholder,
+    raised: true,
+  },
+  {
+    key: 'email',
+    type: 'email',
+    autocomplete: 'email',
+    label: copy.fields.email,
+    error: copy.errors.email,
+    placeholder: ' ',
+    raised: false,
+  },
+] as const);
+
+const selectFields = [
+  { key: 'open_loan', label: copy.fields.openLoan },
+  { key: 'employed', label: copy.fields.employed },
+];
+---
+
+<div class="lead-form" id={id}>
+  <h2 class="t-h3 lead-form__heading">{heading}</h2>
+  <p class="lead-form__subhead">{copy.subhead}</p>
+
+  <form data-lead-form data-source={instance} novalidate>
+    <p class="lead-form__error" data-form-error role="alert">{copy.errors.submit}</p>
+
+    <div class="lead-form__fields">
+      {textFields.map((field) => (
+        <div class:list={['field', field.raised && 'field--raised']} data-field={field.key}>
+          <input
+            class="field__control"
+            id={`${id}-${field.key}`}
+            name={field.key}
+            type={field.type}
+            autocomplete={field.autocomplete}
+            placeholder={field.placeholder}
+            inputmode={field.key === 'phone' ? 'tel' : undefined}
+            maxlength={field.key === 'phone' ? 14 : undefined}
+            required
+          />
+          <label class="field__label" for={`${id}-${field.key}`}>
+            {field.label} <span class="field__required" aria-hidden="true">*</span>
+          </label>
+          <p class="field__error" data-field-error>{field.error}</p>
+        </div>
+      ))}
+
+      {selectFields.map((field) => (
+        <div class="field field--select" data-field={field.key}>
+          <label class="field__stacked-label" for={`${id}-${field.key}`}>
+            {field.label} <span class="field__required" aria-hidden="true">*</span>
+          </label>
+          <select class="field__control" id={`${id}-${field.key}`} name={field.key} required>
+            <option value="" disabled selected>{copy.select.placeholder}</option>
+            <option value="yes">{copy.select.yes}</option>
+            <option value="no">{copy.select.no}</option>
+          </select>
+          <p class="field__error" data-field-error>{copy.errors.select}</p>
+        </div>
+      ))}
+    </div>
+
+    <div class="honeypot" aria-hidden="true">
+      <label for={`${id}-company`}>Company</label>
+      <input id={`${id}-company`} name="company" type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <input type="hidden" name="stock" value="" data-stock />
+
+    <button
+      class="btn btn--primary btn--lg btn--block"
+      type="submit"
+      data-submit
+      data-label-idle={copy.submit}
+      data-label-busy={copy.submitting}
+    >
+      {copy.submit}
+    </button>
+
+    <p class="t-caption lead-form__fine-print">{copy.finePrint}</p>
+  </form>
+
+  <div class="lead-form__success" data-form-success role="status">
+    <p class="t-h3 lead-form__success-title">{copy.success.title}</p>
+    <p class="t-caption">{copy.success.body}</p>
+  </div>
+</div>
+
+<script>
+  import { formatPhone, isValidChoice, isValidEmail, isValidName, isValidPhone } from '../lib/validation';
+  import { buildPayload, getRecaptchaToken, submitLead } from '../lib/leads';
+  import type { LeadSource } from '../lib/leads';
+  import { captureAttribution, trackPixel } from '../lib/tracking';
+
+  captureAttribution();
+
+  const validators: Record<string, (value: string) => boolean> = {
+    name: isValidName,
+    phone: isValidPhone,
+    email: isValidEmail,
+    open_loan: isValidChoice,
+    employed: isValidChoice,
+  };
+
+  function markField(control: Element, valid: boolean): void {
+    const wrapper = control.closest<HTMLElement>('[data-field]');
+    if (wrapper) wrapper.dataset.invalid = valid ? 'false' : 'true';
+  }
+
+  function validateControl(control: HTMLInputElement | HTMLSelectElement): boolean {
+    const check = validators[control.name];
+    if (!check) return true;
+    return check(control.value);
+  }
+
+  document.querySelectorAll<HTMLFormElement>('[data-lead-form]').forEach((form) => {
+    const container = form.parentElement as HTMLElement;
+    const submitButton = form.querySelector<HTMLButtonElement>('[data-submit]');
+    const formError = form.querySelector<HTMLElement>('[data-form-error]');
+    const successBox = container.querySelector<HTMLElement>('[data-form-success]');
+    const stockInput = form.querySelector<HTMLInputElement>('[data-stock]');
+    const source = (form.dataset.source ?? 'hero') as LeadSource;
+
+    const phoneInput = form.querySelector<HTMLInputElement>('input[name="phone"]');
+    phoneInput?.addEventListener('input', () => {
+      const atEnd = phoneInput.selectionStart === phoneInput.value.length;
+      phoneInput.value = formatPhone(phoneInput.value);
+      if (atEnd) phoneInput.setSelectionRange(phoneInput.value.length, phoneInput.value.length);
+    });
+
+    const controls = Array.from(
+      form.querySelectorAll<HTMLInputElement | HTMLSelectElement>('.field__control')
+    );
+
+    controls.forEach((control) => {
+      control.addEventListener('blur', () => {
+        if (control.value.trim() !== '') markField(control, validateControl(control));
+      });
+      control.addEventListener('change', () => {
+        if (control.value.trim() !== '') markField(control, validateControl(control));
+      });
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const honeypot = form.querySelector<HTMLInputElement>('input[name="company"]');
+      if (honeypot && honeypot.value.trim() !== '') return;
+
+      let firstInvalid: HTMLElement | null = null;
+      controls.forEach((control) => {
+        const valid = validateControl(control);
+        markField(control, valid);
+        if (!valid && !firstInvalid) firstInvalid = control;
+      });
+
+      if (firstInvalid) {
+        (firstInvalid as HTMLElement).focus();
+        return;
+      }
+
+      if (formError) formError.dataset.visible = 'false';
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = submitButton.dataset.labelBusy ?? 'Sending…';
+      }
+
+      const values = Object.fromEntries(
+        controls.map((control) => [control.name, control.value])
+      ) as Record<string, string>;
+
+      try {
+        const token = await getRecaptchaToken(`lead_${source}`);
+        const payload = buildPayload(
+          {
+            source,
+            stock: stockInput?.value ?? '',
+            name: values.name ?? '',
+            phone: values.phone ?? '',
+            email: values.email ?? '',
+            openLoan: values.open_loan ?? '',
+            employed: values.employed ?? '',
+          },
+          token
+        );
+
+        await submitLead(payload);
+
+        trackPixel('Lead', { content_category: source }, payload.event_id);
+
+        form.style.display = 'none';
+        if (successBox) successBox.dataset.visible = 'true';
+        successBox?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      } catch {
+        if (formError) formError.dataset.visible = 'true';
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = submitButton.dataset.labelIdle ?? 'Get My Approval';
+        }
+        formError?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    });
+  });
+
+  document.querySelectorAll<HTMLElement>('[data-finance-stock]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const stock = button.dataset.financeStock ?? '';
+      document.querySelectorAll<HTMLInputElement>('[data-stock]').forEach((input) => {
+        input.value = stock;
+      });
+      const target = document.getElementById('bottom-form');
+      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.setTimeout(() => {
+        target?.querySelector<HTMLInputElement>('input[name="name"]')?.focus({ preventScroll: true });
+      }, 600);
+    });
+  });
+</script>

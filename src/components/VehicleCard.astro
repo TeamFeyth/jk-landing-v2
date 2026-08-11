@@ -1,0 +1,77 @@
+---
+import { vehiclesSection as copy } from '../data/copy';
+import type { Vehicle } from '../data/vehicles';
+
+interface Props {
+  vehicle: Vehicle;
+  loading: 'lazy' | 'eager';
+}
+
+const { vehicle, loading } = Astro.props;
+---
+
+<article class="card vehicle">
+  <div class="vehicle__media">
+    <img
+      class="vehicle__photo"
+      src={vehicle.photo}
+      data-fallback={vehicle.photoFallback}
+      alt={vehicle.title}
+      width="1600"
+      height="900"
+      loading={loading}
+      decoding="async"
+    />
+    <span class="vehicle__stock">Stock #{vehicle.stock}</span>
+  </div>
+
+  <div class="vehicle__body">
+    <h3 class="t-h3 vehicle__title">{vehicle.title}</h3>
+    <p class="vehicle__specs">{vehicle.specs}</p>
+
+    <div class="vehicle__terms">
+      {vehicle.termMonths !== null && (
+        <div class="vehicle__term">
+          <span class="vehicle__term-label">{copy.labels.term}</span>
+          <span class="vehicle__term-value">{vehicle.termMonths} {copy.labels.months}</span>
+        </div>
+      )}
+      {vehicle.aprPercent !== null && (
+        <div class="vehicle__term">
+          <span class="vehicle__term-label">{copy.labels.apr}</span>
+          <span class="vehicle__term-value">{vehicle.aprPercent}%</span>
+        </div>
+      )}
+      <div class="vehicle__term vehicle__term--down">
+        <span class="vehicle__term-label">{copy.labels.down}</span>
+        <span class="vehicle__term-value">{vehicle.downPayment}</span>
+      </div>
+      {vehicle.biweekly !== null && (
+        <div class="vehicle__term">
+          <span class="vehicle__term-label">{copy.labels.biweekly}</span>
+          <span class="vehicle__term-value">${vehicle.biweekly}</span>
+        </div>
+      )}
+    </div>
+
+    <div class="vehicle__actions">
+      <a class="link" href={vehicle.detailsUrl} rel="noopener">{copy.details}</a>
+      <button class="btn btn--secondary btn--md" type="button" data-finance-stock={vehicle.stock}>
+        {copy.finance}
+      </button>
+    </div>
+  </div>
+</article>
+
+<script>
+  function useFallback(img: HTMLImageElement): void {
+    const fallback = img.dataset.fallback;
+    if (!fallback || img.getAttribute('src') === fallback) return;
+    img.src = fallback;
+  }
+
+  document.querySelectorAll<HTMLImageElement>('img[data-fallback]').forEach((img) => {
+    img.addEventListener('error', () => useFallback(img));
+    if (img.complete && img.naturalWidth === 0) useFallback(img);
+  });
+</script>

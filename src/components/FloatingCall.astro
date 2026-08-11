@@ -1,0 +1,9 @@
+---
+import Icon from './Icon.astro';
+import { floating } from '../data/copy';
+import { site } from '../data/site';
+---
+
+<a class="floating-call" href={`tel:${site.phone.tel}`} aria-label={floating.label}>
+  <Icon name="phone" />
+</a>

@@ -1,0 +1,50 @@
+---
+import { consent } from '../data/copy';
+import { site } from '../data/site';
+---
+
+<div class="consent" data-consent role="region" aria-label="Cookies">
+  <div class="container consent__row">
+    <p class="t-caption consent__text">
+      {consent.body}
+      <a href={site.links.privacy} rel="noopener">{consent.privacy}</a>
+    </p>
+    <div class="consent__actions">
+      <button class="btn btn--secondary-inverse btn--sm" type="button" data-consent-decline>
+        {consent.decline}
+      </button>
+      <button class="btn btn--secondary-inverse btn--sm" type="button" data-consent-accept>
+        {consent.accept}
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { REQUIRE_COOKIE_CONSENT } from '../lib/env';
+  import { consentState, setConsent } from '../lib/tracking';
+
+  const banner = document.querySelector<HTMLElement>('[data-consent]');
+
+  if (banner) {
+    if (REQUIRE_COOKIE_CONSENT && consentState() === 'unknown') {
+      banner.dataset.open = 'true';
+      document.body.dataset.consentOpen = 'true';
+    }
+
+    const close = () => {
+      banner.dataset.open = 'false';
+      document.body.dataset.consentOpen = 'false';
+    };
+
+    banner.querySelector('[data-consent-accept]')?.addEventListener('click', () => {
+      setConsent('granted');
+      close();
+    });
+
+    banner.querySelector('[data-consent-decline]')?.addEventListener('click', () => {
+      setConsent('denied');
+      close();
+    });
+  }
+</script>

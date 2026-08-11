@@ -1,0 +1,52 @@
+---
+import { META_PIXEL_ID } from '../lib/env';
+---
+
+{META_PIXEL_ID && (
+  <noscript>
+    <img
+      height="1"
+      width="1"
+      style="display:none"
+      alt=""
+      src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+    />
+  </noscript>
+)}
+
+<script>
+  import { META_PIXEL_ID } from '../lib/env';
+  import { hasConsent } from '../lib/tracking';
+
+  let loaded = false;
+
+  function loadPixel(): void {
+    if (loaded || !META_PIXEL_ID || typeof window.fbq === 'function') return;
+    loaded = true;
+
+    /* Snippet estandar de Meta */
+    const fbq: any = function (...args: unknown[]) {
+      fbq.callMethod ? fbq.callMethod.apply(fbq, args) : fbq.queue.push(args);
+    };
+    fbq.push = fbq;
+    fbq.loaded = true;
+    fbq.version = '2.0';
+    fbq.queue = [];
+    window.fbq = fbq;
+    window._fbq = fbq;
+
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://connect.facebook.net/en_US/fbevents.js';
+    document.head.appendChild(script);
+
+    fbq('init', META_PIXEL_ID);
+    fbq('track', 'PageView');
+  }
+
+  if (hasConsent()) loadPixel();
+
+  document.addEventListener('jk:consent', (event) => {
+    if ((event as CustomEvent<string>).detail === 'granted') loadPixel();
+  });
+</script>

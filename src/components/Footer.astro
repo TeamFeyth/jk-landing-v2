@@ -1,0 +1,52 @@
+---
+import { footer } from '../data/copy';
+import { site } from '../data/site';
+---
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div>
+        <h2 class="t-h3 footer__heading">{footer.about.heading}</h2>
+        <p class="footer__body">{footer.about.body}</p>
+      </div>
+
+      <div>
+        <h2 class="t-h3 footer__heading">{footer.visit}</h2>
+        <div class="footer__list">
+          <address style="font-style: normal;">
+            {site.address.street}<br />
+            {site.address.locality}, {site.address.region} {site.address.postalCode}
+          </address>
+          <a href={`tel:${site.phone.tel}`}>{site.phone.display}</a>
+          <dl>
+            {site.hours.map((row) => (
+              <div class="footer__hours">
+                <dt>{row.days}</dt>
+                <dd>{row.time}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="t-h3 footer__heading">{footer.approved.heading}</h2>
+        <ul class="footer__list">
+          {footer.approved.links.map((link) => (
+            <li><a href={link.href}>{link.label}</a></li>
+          ))}
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bar">
+      <span>{footer.copyright}</span>
+      <span>
+        <a href={site.links.privacy} rel="noopener">{footer.privacy}</a>
+        ·
+        <a href={site.links.terms} rel="noopener">{footer.terms}</a>
+      </span>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?adf version="1.0"?>
+<adf>
+  <prospect status="new">
+    <id sequence="1" source="jkamalcars.com">8f3c1e6a-4b21-4c9d-9a77-0d51b2f4e310</id>
+    <requestdate>2026-08-10T14:32:07-05:00</requestdate>
+
+    <vehicle interest="buy" status="used">
+      <year>2017</year>
+      <make>Honda</make>
+      <model>Accord</model>
+      <trim>LX CVT</trim>
+      <stock>212255</stock>
+      <odometer status="original" units="mi">84325</odometer>
+      <finance>
+        <method>finance</method>
+        <amount type="downpayment" currency="USD">2800</amount>
+      </finance>
+    </vehicle>
+
+    <customer>
+      <contact primarycontact="1">
+        <name part="full" type="individual">Maria Gonzalez</name>
+        <email preferredcontact="0">maria.gonzalez@example.com</email>
+        <phone type="voice" time="day" preferredcontact="1">8325550142</phone>
+      </contact>
+      <comments>Open auto loan on another vehicle: No
+Employed in the last 6 months: Yes
+Form: hero
+Landing: lp2
+Event ID: 8f3c1e6a-4b21-4c9d-9a77-0d51b2f4e310
+fbc: fb.1.1754593451000.IwAR2xExampleClickId
+fbp: fb.1.1754593400000.1098765432
+utm_source: facebook
+utm_medium: paid
+utm_campaign: bhph-august
+utm_content: hero-form
+utm_term:
+Page: https://jk-landing-v2.pages.dev/?utm_source=facebook&amp;utm_medium=paid
+Referrer: https://l.facebook.com/</comments>
+    </customer>
+
+    <vendor>
+      <id sequence="1" source="jkamalcars.com">104878</id>
+      <vendorname>John Kamal Cars</vendorname>
+      <contact>
+        <name part="full">John Kamal Cars</name>
+        <email>jkamalcars@ledas.neoverify.com</email>
+        <phone type="voice">8324471511</phone>
+        <address>
+          <street line="1">13141 Bissonnet St #C</street>
+          <city>Houston</city>
+          <regioncode>TX</regioncode>
+          <postalcode>77099</postalcode>
+          <country>US</country>
+        </address>
+      </contact>
+    </vendor>
+
+    <provider>
+      <name part="full">Feyth Marketing</name>
+      <service>Landing Page 2</service>
+      <email>team@feyth.com</email>
+    </provider>
+  </prospect>
+</adf>

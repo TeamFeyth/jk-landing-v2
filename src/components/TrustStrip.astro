@@ -1,0 +1,15 @@
+---
+import Icon from './Icon.astro';
+import { trust } from '../data/copy';
+---
+
+<section class="trust">
+  <div class="container trust__row">
+    {trust.map((item) => (
+      <div class="trust__item">
+        <Icon name={item.icon} class="trust__icon" />
+        <span class="trust__label">{item.label}</span>
+      </div>
+    ))}
+  </div>
+</section>

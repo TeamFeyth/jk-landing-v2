@@ -1,0 +1,12 @@
+---
+import { RECAPTCHA_SITE_KEY } from '../lib/env';
+---
+
+{RECAPTCHA_SITE_KEY && (
+  <script
+    is:inline
+    async
+    defer
+    src={`https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`}
+  ></script>
+)}
