@@ -1,5 +1,8 @@
 ---
 import { form as copy } from '../data/copy';
+import { CAPTCHA_PROVIDER, TURNSTILE_SITE_KEY } from '../lib/env';
+
+const showTurnstile = CAPTCHA_PROVIDER === 'turnstile' && Boolean(TURNSTILE_SITE_KEY);
 
 interface Props {
   instance: 'hero' | 'bottom' | 'popup';
@@ -95,6 +98,18 @@ const selectFields = [
 
     <input type="hidden" name="stock" value="" data-stock />
 
+    {showTurnstile && (
+      <div
+        class="cf-turnstile captcha-widget"
+        data-captcha-widget
+        data-sitekey={TURNSTILE_SITE_KEY}
+        data-appearance="interaction-only"
+        data-response-field-name="captcha_token"
+        data-size="flexible"
+        data-action={`lead_${instance}`}
+      ></div>
+    )}
+
     <button
       class="btn btn--primary btn--lg btn--block"
       type="submit"
@@ -116,7 +131,7 @@ const selectFields = [
 
 <script>
   import { formatPhone, isValidChoice, isValidEmail, isValidName, isValidPhone } from '../lib/validation';
-  import { buildPayload, getRecaptchaToken, submitLead } from '../lib/leads';
+  import { buildPayload, getCaptchaToken, resetCaptcha, submitLead } from '../lib/leads';
   import type { LeadSource } from '../lib/leads';
   import { captureAttribution, trackPixel } from '../lib/tracking';
 
@@ -198,7 +213,7 @@ const selectFields = [
       ) as Record<string, string>;
 
       try {
-        const token = await getRecaptchaToken(`lead_${source}`);
+        const token = await getCaptchaToken(form, `lead_${source}`);
         const payload = buildPayload(
           {
             source,
@@ -220,6 +235,7 @@ const selectFields = [
         if (successBox) successBox.dataset.visible = 'true';
         successBox?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       } catch {
+        resetCaptcha(form);
         if (formError) formError.dataset.visible = 'true';
         if (submitButton) {
           submitButton.disabled = false;

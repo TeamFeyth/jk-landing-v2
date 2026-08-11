@@ -986,3 +986,9 @@ body[data-consent-open='true'] .floating-call {
     min-width: 96px;
   }
 }
+
+/* Widget del captcha */
+
+.captcha-widget:not(:empty) {
+  margin-bottom: var(--sp-4);
+}

@@ -1,4 +1,4 @@
-import { WEBHOOK_URL, RECAPTCHA_SITE_KEY } from './env';
+import { CAPTCHA_PROVIDER, LEAD_ENDPOINT, RECAPTCHA_SITE_KEY } from './env';
 import { getAttribution, newEventId } from './tracking';
 import { LANDING_ID } from '../data/site';
 
@@ -26,7 +26,7 @@ export type LeadPayload = {
   utm_campaign: string;
   utm_content: string;
   utm_term: string;
-  recaptcha_token: string;
+  captcha_token: string;
 };
 
 export type LeadInput = {
@@ -39,21 +39,48 @@ export type LeadInput = {
   employed: string;
 };
 
-// reCAPTCHA v3
+// Captcha
 
-export async function getRecaptchaToken(action: string): Promise<string> {
-  if (!RECAPTCHA_SITE_KEY || !window.grecaptcha) return '';
-  try {
-    await new Promise<void>((resolve) => window.grecaptcha!.ready(resolve));
-    return await window.grecaptcha!.execute(RECAPTCHA_SITE_KEY, { action });
-  } catch {
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+export async function getCaptchaToken(form: HTMLFormElement, action: string): Promise<string> {
+  if (CAPTCHA_PROVIDER === 'recaptcha') {
+    if (!RECAPTCHA_SITE_KEY || !window.grecaptcha) return '';
+    try {
+      await new Promise<void>((resolve) => window.grecaptcha!.ready(resolve));
+      return await window.grecaptcha!.execute(RECAPTCHA_SITE_KEY, { action });
+    } catch {
+      return '';
+    }
+  }
+
+  if (CAPTCHA_PROVIDER === 'turnstile') {
+    const field = form.querySelector<HTMLInputElement>('input[name="captcha_token"]');
+    for (let attempt = 0; attempt < 25; attempt += 1) {
+      if (field?.value) return field.value;
+      await wait(200);
+    }
     return '';
+  }
+
+  return '';
+}
+
+export function resetCaptcha(form: HTMLFormElement): void {
+  if (CAPTCHA_PROVIDER !== 'turnstile' || !window.turnstile) return;
+  const widget = form.querySelector<HTMLElement>('[data-captcha-widget]');
+  try {
+    window.turnstile.reset(widget ?? undefined);
+  } catch {
+    return;
   }
 }
 
 // Payload
 
-export function buildPayload(input: LeadInput, recaptchaToken: string): LeadPayload {
+export function buildPayload(input: LeadInput, captchaToken: string): LeadPayload {
   const attribution = getAttribution();
   return {
     landing: LANDING_ID,
@@ -77,73 +104,28 @@ export function buildPayload(input: LeadInput, recaptchaToken: string): LeadPayl
     utm_campaign: attribution.utm_campaign,
     utm_content: attribution.utm_content,
     utm_term: attribution.utm_term,
-    recaptcha_token: recaptchaToken,
+    captcha_token: captchaToken,
   };
 }
 
-// Envío al webhook
+// Envio a la funcion /api/lead
 
 export async function submitLead(payload: LeadPayload): Promise<void> {
-  if (!WEBHOOK_URL) {
-    throw new Error('PUBLIC_WEBHOOK_URL sin configurar');
-  }
-
-  const response = await fetch(WEBHOOK_URL, {
+  const response = await fetch(LEAD_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
     keepalive: true,
   });
 
-  if (!response.ok) {
-    throw new Error(`Webhook respondió ${response.status}`);
+  let data: { ok?: boolean; error?: string } = {};
+  try {
+    data = (await response.json()) as { ok?: boolean; error?: string };
+  } catch {
+    data = {};
+  }
+
+  if (!response.ok || data.ok !== true) {
+    throw new Error(data.error ? `lead_endpoint: ${data.error}` : `lead_endpoint ${response.status}`);
   }
 }
-
-/*
-  Variante para Google Apps Script
-
-  Una app web de Apps Script no responde la petición de verificación previa
-  (preflight OPTIONS) que dispara el encabezado 'Content-Type: application/json'.
-  El envío falla desde el navegador aunque el script del lado de Google esté bien.
-
-  Si se confirma que el destino del formulario es Apps Script, se reemplaza el
-  cuerpo de submitLead() por esta versión. Con Zapier, Make o n8n no hace falta:
-  esos sí manejan CORS.
-
-  export async function submitLead(payload: LeadPayload): Promise<void> {
-    if (!WEBHOOK_URL) {
-      throw new Error('PUBLIC_WEBHOOK_URL sin configurar');
-    }
-
-    const response = await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload),
-      redirect: 'follow',
-      keepalive: true,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Webhook respondió ${response.status}`);
-    }
-  }
-
-  Lado de Apps Script:
-
-  function doPost(e) {
-    var data = JSON.parse(e.postData.contents);
-    var sheet = SpreadsheetApp.openById('SHEET_ID').getSheetByName('Leads');
-    sheet.appendRow([
-      data.submitted_at, data.landing, data.source, data.stock,
-      data.name, data.phone, data.email, data.open_loan, data.employed,
-      data.event_id, data.fbc, data.fbp, data.fbclid,
-      data.utm_source, data.utm_medium, data.utm_campaign,
-      data.utm_content, data.utm_term,
-      data.page_url, data.referrer
-    ]);
-    return ContentService
-      .createTextOutput(JSON.stringify({ ok: true }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-*/

@@ -1,0 +1,24 @@
+---
+import { CAPTCHA_PROVIDER, RECAPTCHA_SITE_KEY, TURNSTILE_SITE_KEY } from '../lib/env';
+
+const useTurnstile = CAPTCHA_PROVIDER === 'turnstile' && Boolean(TURNSTILE_SITE_KEY);
+const useRecaptcha = CAPTCHA_PROVIDER === 'recaptcha' && Boolean(RECAPTCHA_SITE_KEY);
+---
+
+{useTurnstile && (
+  <script
+    is:inline
+    async
+    defer
+    src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+  ></script>
+)}
+
+{useRecaptcha && (
+  <script
+    is:inline
+    async
+    defer
+    src={`https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`}
+  ></script>
+)}
