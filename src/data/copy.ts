@@ -166,3 +166,30 @@ export const consent = {
   accept: 'Accept',
   decline: 'Decline',
 };
+
+// Thank you
+
+export const thankYou = {
+  title: 'Thank you — John Kamal Cars',
+  description: 'We got your information. A member of our team will reach out shortly.',
+  eyebrow: 'Request received',
+  heading: "You're in.",
+  body: 'A member of our team will call or text you shortly with your options. Most customers hear back the same day.',
+  next: {
+    heading: 'While you wait',
+    items: [
+      {
+        title: 'Browse the lot',
+        body: 'Take a look at what we have on the lot right now, with the down payment on every card.',
+        label: 'View All Vehicles',
+      },
+      {
+        title: "Can't wait?",
+        body: 'Call or text us and we can go over your numbers right now.',
+        label: 'Call or text',
+      },
+    ],
+  },
+  hours: 'Hours',
+  back: 'Back to home',
+};

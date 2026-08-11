@@ -59,3 +59,11 @@ export const meta = {
     'Bad credit or no credit, we still say yes. In-house financing in Houston for 25+ years. No credit check to apply.',
   ogImage: '/images/brand/hero_image_desktop.webp',
 };
+
+// Pagina de gracias
+
+// Con esto en false el formulario muestra el mensaje de exito en la misma
+// pagina, como pedia el documento original, en vez de redirigir.
+export const redirectToThankYou = true;
+
+export const thankYouPath = '/thank-you/';

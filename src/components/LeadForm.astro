@@ -132,6 +132,7 @@ const selectFields = [
 <script>
   import { formatPhone, isValidChoice, isValidEmail, isValidName, isValidPhone } from '../lib/validation';
   import { buildPayload, getCaptchaToken, resetCaptcha, submitLead } from '../lib/leads';
+  import { redirectToThankYou, thankYouPath } from '../data/site';
   import type { LeadSource } from '../lib/leads';
   import { captureAttribution, trackPixel } from '../lib/tracking';
 
@@ -228,6 +229,14 @@ const selectFields = [
         );
 
         await submitLead(payload);
+
+        // Con la redireccion activa el evento Lead lo dispara /thank-you, para
+        // no contarlo dos veces.
+        if (redirectToThankYou) {
+          window.location.href =
+            `${thankYouPath}?source=${encodeURIComponent(source)}&eid=${encodeURIComponent(payload.event_id)}`;
+          return;
+        }
 
         trackPixel('Lead', { content_category: source }, payload.event_id);
 

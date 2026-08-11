@@ -1,0 +1,153 @@
+---
+import '@fontsource/archivo/400.css';
+import '@fontsource/archivo/500.css';
+import '@fontsource/archivo/600.css';
+import '@fontsource/archivo/700.css';
+import '@fontsource/archivo-black/400.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import '../styles/components.css';
+
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import FloatingCall from '../components/FloatingCall.astro';
+import CookieConsent from '../components/CookieConsent.astro';
+import MetaPixel from '../components/MetaPixel.astro';
+import Icon from '../components/Icon.astro';
+
+import { thankYou as copy, vehiclesSection } from '../data/copy';
+import { site } from '../data/site';
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{copy.title}</title>
+    <meta name="description" content={copy.description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta name="robots" content="noindex, nofollow" />
+
+    <link rel="preconnect" href="https://connect.facebook.net" crossorigin />
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <Header />
+
+    <main id="main" class="section thanks">
+      <div class="container">
+        <div class="thanks__panel">
+          <span class="thanks__check" aria-hidden="true">
+            <Icon name="check" />
+          </span>
+
+          <p class="t-eyebrow thanks__eyebrow">{copy.eyebrow}</p>
+          <h1 class="t-h1 thanks__heading">{copy.heading}</h1>
+          <p class="t-body-lg thanks__body">{copy.body}</p>
+
+          <a class="btn btn--primary btn--lg thanks__cta" href={`tel:${site.phone.tel}`}>
+            {site.phone.display}
+          </a>
+        </div>
+
+        <section class="thanks__next">
+          <h2 class="t-h2 thanks__next-heading">{copy.next.heading}</h2>
+
+          <div class="thanks__cards">
+            <article class="card thanks__card">
+              <h3 class="t-h3 thanks__card-title">{copy.next.items[0].title}</h3>
+              <p class="thanks__card-body">{copy.next.items[0].body}</p>
+              <a class="btn btn--secondary btn--md" href={site.links.inventory} rel="noopener">
+                {vehiclesSection.viewAll}
+              </a>
+            </article>
+
+            <article class="card thanks__card">
+              <h3 class="t-h3 thanks__card-title">{copy.next.items[1].title}</h3>
+              <p class="thanks__card-body">{copy.next.items[1].body}</p>
+              <a class="btn btn--secondary btn--md" href={`tel:${site.phone.tel}`}>
+                {copy.next.items[1].label}
+              </a>
+            </article>
+          </div>
+
+          <div class="thanks__hours">
+            <h3 class="t-eyebrow thanks__hours-heading">{copy.hours}</h3>
+            <dl>
+              {site.hours.map((row) => (
+                <div class="footer__hours">
+                  <dt>{row.days}</dt>
+                  <dd>{row.time}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+
+        <p class="thanks__back">
+          <a class="link" href="/">{copy.back}</a>
+        </p>
+      </div>
+    </main>
+
+    <Footer />
+    <FloatingCall />
+    <CookieConsent />
+    <MetaPixel />
+  </body>
+</html>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const source = params.get('source') ?? 'unknown';
+  const eventId = params.get('eid') ?? '';
+
+  const ONCE_KEY = `jk_lead_fired_${eventId || source}`;
+
+  function yaDisparado(): boolean {
+    if (!eventId) return false;
+    try {
+      return sessionStorage.getItem(ONCE_KEY) === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  function marcar(): void {
+    try {
+      sessionStorage.setItem(ONCE_KEY, '1');
+    } catch {
+      return;
+    }
+  }
+
+  // Un solo evento Lead. El eventID es el mismo que va en el ADF, para que la
+  // CAPI pueda deduplicar. Recargar la pagina no vuelve a contarlo.
+  function disparar(): boolean {
+    if (yaDisparado()) return true;
+
+    const fbq = window.fbq;
+    if (typeof fbq !== 'function') return false;
+
+    if (eventId) {
+      fbq('track', 'Lead', { content_category: source }, { eventID: eventId });
+    } else {
+      fbq('track', 'Lead', { content_category: source });
+    }
+
+    marcar();
+    return true;
+  }
+
+  if (!disparar()) {
+    // El pixel puede llegar despues de que se acepten las cookies
+    document.addEventListener('jk:consent', () => window.setTimeout(disparar, 300));
+  }
+</script>
