@@ -6,7 +6,7 @@ export type Vehicle = {
   aprPercent: number | null;
   downPayment: string;
   biweekly: number | null;
-  photo: string;
+  photos: string[];
   photoFallback: string;
   detailsUrl: string;
 };
@@ -27,7 +27,7 @@ export const vehicles: Vehicle[] = [
     aprPercent: null,
     downPayment: '$2,800',
     biweekly: null,
-    photo: cdn('11713907', '420741776533779.jpg'),
+    photos: [cdn('11713907', '420741776533779.jpg')],
     photoFallback: '/images/vehicles/212255.svg',
     detailsUrl: 'https://jkamalcars.com/vehicles/11713907-2017-Honda-Accord/',
   },
@@ -39,7 +39,7 @@ export const vehicles: Vehicle[] = [
     aprPercent: null,
     downPayment: '$2,200',
     biweekly: null,
-    photo: cdn('8352207', '597931731543715.jpg'),
+    photos: [cdn('8352207', '597931731543715.jpg')],
     photoFallback: '/images/vehicles/843051.svg',
     detailsUrl: 'https://jkamalcars.com/vehicles/8352207-2018-Nissan-Rogue/',
   },
@@ -51,7 +51,7 @@ export const vehicles: Vehicle[] = [
     aprPercent: null,
     downPayment: 'Call for details',
     biweekly: null,
-    photo: cdn('11899161', '132241782400942.jpg'),
+    photos: [cdn('11899161', '132241782400942.jpg')],
     photoFallback: '/images/vehicles/A62810.svg',
     detailsUrl: 'https://jkamalcars.com/vehicles/11899161-2022-Ford-Expedition/',
   },

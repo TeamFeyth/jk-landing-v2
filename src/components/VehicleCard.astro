@@ -8,21 +8,51 @@ interface Props {
 }
 
 const { vehicle, loading } = Astro.props;
+const hasMultiplePhotos = vehicle.photos.length > 1;
 ---
 
 <article class="card vehicle">
   <div class="vehicle__media">
-    <img
-      class="vehicle__photo"
-      src={vehicle.photo}
-      data-fallback={vehicle.photoFallback}
-      alt={vehicle.title}
-      width="1600"
-      height="900"
-      loading={loading}
-      decoding="async"
-    />
+    <div class="vehicle__slider" data-vehicle-slider>
+      {vehicle.photos.map((photo, index) => (
+        <div class="vehicle__slide" data-slide>
+          <img
+            class="vehicle__photo-backdrop"
+            src={photo}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+          />
+          <img
+            class="vehicle__photo"
+            src={photo}
+            data-fallback={vehicle.photoFallback}
+            alt={vehicle.title}
+            width="1600"
+            height="900"
+            loading={index === 0 ? loading : 'lazy'}
+            decoding="async"
+          />
+        </div>
+      ))}
+    </div>
+
     <span class="vehicle__stock">Stock #{vehicle.stock}</span>
+
+    {hasMultiplePhotos && (
+      <div class="vehicle__dots" data-vehicle-dots>
+        {vehicle.photos.map((_, index) => (
+          <button
+            type="button"
+            class="vehicle__dot"
+            data-dot={index}
+            aria-label={`Foto ${index + 1} de ${vehicle.title}`}
+            aria-pressed={index === 0 ? 'true' : 'false'}
+          />
+        ))}
+      </div>
+    )}
   </div>
 
   <div class="vehicle__body">
@@ -68,10 +98,45 @@ const { vehicle, loading } = Astro.props;
     const fallback = img.dataset.fallback;
     if (!fallback || img.getAttribute('src') === fallback) return;
     img.src = fallback;
+
+    const backdrop = img
+      .closest('[data-slide]')
+      ?.querySelector<HTMLImageElement>('.vehicle__photo-backdrop');
+    if (backdrop) backdrop.style.display = 'none';
   }
 
   document.querySelectorAll<HTMLImageElement>('img[data-fallback]').forEach((img) => {
     img.addEventListener('error', () => useFallback(img));
     if (img.complete && img.naturalWidth === 0) useFallback(img);
+  });
+
+  document.querySelectorAll<HTMLElement>('[data-vehicle-slider]').forEach((slider) => {
+    const media = slider.closest('.vehicle__media');
+    const dotsWrap = media?.querySelector<HTMLElement>('[data-vehicle-dots]');
+    if (!dotsWrap) return;
+
+    const slides = Array.from(slider.querySelectorAll<HTMLElement>('[data-slide]'));
+    const dots = Array.from(dotsWrap.querySelectorAll<HTMLButtonElement>('[data-dot]'));
+
+    const setActive = (index: number): void => {
+      dots.forEach((dot, i) => dot.setAttribute('aria-pressed', String(i === index)));
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          setActive(slides.indexOf(entry.target as HTMLElement));
+        });
+      },
+      { root: slider, threshold: 0.6 },
+    );
+    slides.forEach((slide) => observer.observe(slide));
+
+    dots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        slides[index]?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+      });
+    });
   });
 </script>

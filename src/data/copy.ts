@@ -14,9 +14,9 @@ export const hero = {
   subheadline:
     'John Kamal Cars has been getting Houston customers approved in-house for 25+ years. No credit score gatekeeping — just a short form and a real answer.',
   bullets: [
-    "100% in-house financing — we're the bank, so approvals aren't decided by a score.",
-    'Payments that match payday — weekly, bi-weekly, or monthly, your call.',
     "Se habla Español — our team works with you in the language you're most comfortable in.",
+    'Payments that match payday — weekly, bi-weekly, or monthly, your call.',
+    "100% in-house financing — we're the bank, so approvals aren't decided by a score.",
   ],
   rating: '4.6 out of 5 · 740+ Google reviews · 60%+ of customers come back or refer a friend',
 };
