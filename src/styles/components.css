@@ -217,7 +217,7 @@
   overflow: hidden;
   background-color: var(--ink-black);
   background-image: var(--hero-mobile);
-  background-position: center;
+  background-position: center 42%;
   background-size: cover;
   background-repeat: no-repeat;
   color: var(--pure-white);
@@ -227,6 +227,7 @@
 @media (min-width: 768px) {
   .hero {
     background-image: var(--hero-desktop);
+    background-position: center;
   }
 }
 

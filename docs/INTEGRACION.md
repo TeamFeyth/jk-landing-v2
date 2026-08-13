@@ -48,18 +48,46 @@ Una llave de correo. Cualquiera de las dos sirve; hay que poner una:
 
 - `MAILGUN_API_KEY` (Encrypt) y `MAILGUN_DOMAIN`.
 
-**Opción C — sin proveedor de correo**
+**Opción C — Google Apps Script (la que usamos, no depende de dominio ni DNS)**
 
-Poner `LEAD_FORWARD_URL` apuntando a un webhook de Make, Zapier, n8n o Apps
-Script. La función le manda el lead en JSON **con el ADF ya armado** en el campo
-`adf_xml`, así que del otro lado solo hay que adjuntarlo a un correo.
+En `docs/puente-leads.gs` está el script listo. Manda el ADF a Neo por correo
+(cuerpo de texto + adjunto `.xml`) y deja una copia de respaldo en un Google
+Sheet. Pasos, una sola vez:
 
-Las tres se pueden combinar. Basta con que una entregue para que el lead cuente
-como enviado.
+1. script.google.com → New project → pegar `docs/puente-leads.gs`.
+2. Llenar `SHEET_ID` con un Sheet propio (opcional, recomendado como respaldo).
+3. Deploy → New deployment → Web app. Execute as **Me**, Who has access **Anyone**.
+4. Copiar la URL `/exec` y ponerla en `LEAD_FORWARD_URL`, en las dos landings,
+   en Production y Preview por separado. Redeploy.
+
+La función manda el lead en JSON **con el ADF ya armado** en el campo `adf_xml`,
+así que el script solo lo adjunta y lo envía. El remitente es la cuenta de Google
+que despliega; el correo del cliente viaja en Reply-To y dentro del ADF, no se
+suplanta a nadie. Si Neo filtra por remitente autorizado, hay que pedirle a
+John/Noor que agregue esa cuenta.
+
+Las tres opciones se pueden combinar. Basta con que una entregue para que el lead
+cuente como enviado.
 
 **Mientras no haya ninguna configurada**, la función responde 503 y el visitante
 ve el error con el teléfono. Es a propósito: prefiero que llame a que crea que
 dejó sus datos y nadie lo contacte.
+
+---
+
+## 2b. Origen del lead y leads de prueba
+
+**Source / Source Detail.** Neo muestra dos campos separados. Para la campaña de
+Meta se manda `source = Facebook` y `source detail = Feyth Marketing`. Ambos salen
+de `LEAD_SOURCE` / `LEAD_SOURCE_DETAIL`, viajan en el `<provider>` del ADF y además
+quedan rotulados al inicio de `<comments>` como red de seguridad. Para una campaña
+de Google, cambiar `LEAD_SOURCE` a `Google` y listo, sin tocar código.
+
+**Leads de prueba.** Abrir la landing con `?jk_test=1` y enviar el formulario. El
+ADF llega con el banner `*** TEST LEAD — marcar como DEAD ***` al inicio de los
+comments y con `[TEST]` en el asunto. Neo no permite borrar leads (retención
+legal): el equipo de John los marca como **dead**. Así se corren todas las pruebas
+que haga falta sin ensuciar la data real.
 
 ---
 
@@ -143,6 +171,8 @@ separadas, Preview no hereda nada. Cada cambio exige redeploy manual.
 | `RESEND_API_KEY` | no manda por Resend |
 | `MAILGUN_API_KEY` / `MAILGUN_DOMAIN` | no manda por Mailgun |
 | `LEAD_FORWARD_URL` | sin copia al webhook |
+| `LEAD_SOURCE` | `Facebook` |
+| `LEAD_SOURCE_DETAIL` | `Feyth Marketing` |
 | `TURNSTILE_SECRET_KEY` | usa la de prueba que siempre aprueba |
 | `RECAPTCHA_SECRET_KEY` | no verifica reCAPTCHA |
 | `CAPTCHA_MIN_SCORE` | `0.5` |

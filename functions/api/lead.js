@@ -38,6 +38,8 @@ const DEFAULTS = {
   mailFrom: 'John Kamal Cars <leads@jkamalcars.com>',
   minScore: 0.5,
   turnstileSecret: '1x0000000000000000000000000000000AA',
+  leadSource: 'Facebook',
+  leadSourceDetail: 'Feyth Marketing',
 };
 
 const DEALER = {
@@ -50,11 +52,6 @@ const DEALER = {
   postal: '77099',
   country: 'US',
   source: 'jkamalcars.com',
-};
-
-const PROVIDER = {
-  name: 'Feyth Marketing',
-  service: 'Landing Page 2',
 };
 
 /* Punto de entrada */
@@ -87,6 +84,8 @@ export async function onRequestPost(context) {
   lead.ip = request.headers.get('CF-Connecting-IP') || '';
   lead.country = request.cf && request.cf.country ? request.cf.country : '';
   lead.captcha_score = captcha.score;
+  lead.lead_source = env.LEAD_SOURCE || DEFAULTS.leadSource;
+  lead.lead_source_detail = env.LEAD_SOURCE_DETAIL || DEFAULTS.leadSourceDetail;
 
   const adf = buildAdf(lead);
 
@@ -134,6 +133,7 @@ function normalizeLead(body) {
     email: str(body.email).slice(0, 160),
     open_loan: yesNo(str(body.open_loan)),
     employed: yesNo(str(body.employed)),
+    test: truthy(body.test),
     page_url: str(body.page_url).slice(0, 500),
     landing_url: str(body.landing_url).slice(0, 500),
     referrer: str(body.referrer).slice(0, 500),
@@ -261,8 +261,8 @@ function buildAdf(lead) {
   out.push('    </vendor>');
 
   out.push('    <provider>');
-  out.push(`      <name part="full">${esc(PROVIDER.name)}</name>`);
-  out.push(`      <service>${esc(PROVIDER.service)}</service>`);
+  out.push(`      <name part="full">${esc(lead.lead_source)}</name>`);
+  out.push(`      <service>${esc(lead.lead_source_detail)}</service>`);
   out.push('    </provider>');
 
   out.push('  </prospect>');
@@ -275,6 +275,8 @@ function buildAdf(lead) {
 
 function buildComments(lead) {
   const rows = [
+    ['Source', lead.lead_source],
+    ['Source Detail', lead.lead_source_detail],
     ['Open auto loan on another vehicle', lead.open_loan],
     ['Employed in the last 6 months', lead.employed],
     ['Form', lead.source],
@@ -292,7 +294,8 @@ function buildComments(lead) {
     ['Referrer', lead.referrer],
     ['Country', lead.country],
   ];
-  return rows.filter((row) => row[1]).map((row) => `${row[0]}: ${row[1]}`).join('\n');
+  const body = rows.filter((row) => row[1]).map((row) => `${row[0]}: ${row[1]}`).join('\n');
+  return lead.test ? `*** TEST LEAD — marcar como DEAD ***\n${body}` : body;
 }
 
 /* Entrega por correo */
@@ -300,7 +303,7 @@ function buildComments(lead) {
 async function sendEmail(adf, lead, env) {
   const to = env.CRM_EMAIL || DEFAULTS.crmEmail;
   const from = env.MAIL_FROM || DEFAULTS.mailFrom;
-  const subject = `ADF Lead — ${DEALER.name} — ${lead.name}`;
+  const subject = `${lead.test ? '[TEST] ' : ''}ADF Lead — ${DEALER.name} — ${lead.name}`;
   const replyTo = env.MAIL_REPLY_TO || lead.email;
 
   if (env.RESEND_API_KEY) {
@@ -401,6 +404,10 @@ function yesNo(value) {
   if (normalized === 'yes' || normalized === 'si' || normalized === 'sí') return 'Yes';
   if (normalized === 'no') return 'No';
   return '';
+}
+
+function truthy(value) {
+  return /^(1|true|yes|si|sí)$/i.test(String(value == null ? '' : value).trim());
 }
 
 function splitName(full) {

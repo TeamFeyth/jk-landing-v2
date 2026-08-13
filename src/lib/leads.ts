@@ -27,6 +27,7 @@ export type LeadPayload = {
   utm_content: string;
   utm_term: string;
   captcha_token: string;
+  test: string;
 };
 
 export type LeadInput = {
@@ -105,6 +106,7 @@ export function buildPayload(input: LeadInput, captchaToken: string): LeadPayloa
     utm_content: attribution.utm_content,
     utm_term: attribution.utm_term,
     captcha_token: captchaToken,
+    test: new URLSearchParams(window.location.search).get('jk_test') === '1' ? '1' : '',
   };
 }
 
