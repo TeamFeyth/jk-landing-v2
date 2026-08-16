@@ -40,6 +40,7 @@ const DEFAULTS = {
   turnstileSecret: '1x0000000000000000000000000000000AA',
   leadSource: 'Facebook',
   leadSourceDetail: 'Feyth Marketing',
+  leadService: '',
 };
 
 const DEALER = {
@@ -86,6 +87,7 @@ export async function onRequestPost(context) {
   lead.captcha_score = captcha.score;
   lead.lead_source = env.LEAD_SOURCE || DEFAULTS.leadSource;
   lead.lead_source_detail = env.LEAD_SOURCE_DETAIL || DEFAULTS.leadSourceDetail;
+  lead.lead_service = env.LEAD_SERVICE || DEFAULTS.leadService;
 
   const adf = buildAdf(lead);
 
@@ -261,8 +263,9 @@ function buildAdf(lead) {
   out.push('    </vendor>');
 
   out.push('    <provider>');
-  out.push(`      <name part="full">${esc(lead.lead_source)}</name>`);
-  out.push(`      <service>${esc(lead.lead_source_detail)}</service>`);
+  out.push(`      <name part="full">${esc(lead.lead_source_detail)}</name>`);
+  if (lead.lead_service) out.push(`      <service>${esc(lead.lead_service)}</service>`);
+  out.push(`      <source>${esc(lead.lead_source)}</source>`);
   out.push('    </provider>');
 
   out.push('  </prospect>');
@@ -275,7 +278,16 @@ function buildAdf(lead) {
 
 function buildComments(lead) {
   const rows = [
-    ['Source', lead.lead_source],
+    ['source', lead.lead_source],
+    ['utm_source', lead.utm_source],
+    ['campaign', lead.utm_campaign],
+    ['medium', lead.utm_medium],
+    ['content', lead.utm_content],
+    ['term', lead.utm_term],
+    ['gclid', lead.gclid],
+    ['fbclid', lead.fbclid],
+    ['gbraid', lead.gbraid],
+    ['wbraid', lead.wbraid],
     ['Source Detail', lead.lead_source_detail],
     ['Open auto loan on another vehicle', lead.open_loan],
     ['Employed in the last 6 months', lead.employed],
@@ -284,12 +296,6 @@ function buildComments(lead) {
     ['Event ID', lead.event_id],
     ['fbc', lead.fbc],
     ['fbp', lead.fbp],
-    ['fbclid', lead.fbclid],
-    ['utm_source', lead.utm_source],
-    ['utm_medium', lead.utm_medium],
-    ['utm_campaign', lead.utm_campaign],
-    ['utm_content', lead.utm_content],
-    ['utm_term', lead.utm_term],
     ['Page', lead.page_url],
     ['Referrer', lead.referrer],
     ['Country', lead.country],
