@@ -26,7 +26,7 @@
 
 /* Configuracion */
 
-var CRM_EMAIL = 'jkamalcars@ledas.neoverify.com';
+var CRM_EMAIL = 'jkamalcars@leads.neoverify.com';
 var SHEET_ID = '';
 var SENDER_NAME = 'John Kamal Cars Leads';
 

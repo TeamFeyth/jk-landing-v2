@@ -34,7 +34,7 @@
 */
 
 const DEFAULTS = {
-  crmEmail: 'jkamalcars@ledas.neoverify.com',
+  crmEmail: 'jkamalcars@leads.neoverify.com',
   mailFrom: 'John Kamal Cars <leads@jkamalcars.com>',
   minScore: 0.5,
   turnstileSecret: '1x0000000000000000000000000000000AA',
@@ -224,7 +224,7 @@ function buildAdf(lead) {
   out.push('<adf>');
   out.push('  <prospect status="new">');
   out.push(`    <id sequence="1" source="${DEALER.source}">${esc(lead.event_id)}</id>`);
-  out.push(`    <requestdate>${esc(lead.submitted_at)}</requestdate>`);
+  out.push(`    <requestdate>${adfDate(lead.submitted_at)}</requestdate>`);
 
   if (vehicle) {
     out.push('    <vehicle interest="buy" status="used">');
@@ -376,6 +376,20 @@ async function forwardWebhook(adf, lead, env) {
   if (!response.ok) {
     throw new Error(`forward ${response.status}`);
   }
+
+  /* Apps Script SIEMPRE responde HTTP 200, incluso cuando fallo por dentro, y
+     tambien cuando el deployment pide login (devuelve el HTML de Google).
+     Hay que leer el cuerpo para saber si de verdad entrego. */
+  const text = await response.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error(`forward: respuesta no-JSON, revisar acceso del Apps Script (${text.slice(0, 120)})`);
+  }
+  if (data.ok !== true) {
+    throw new Error(`forward: ${data.error || 'respuesta sin ok'}`);
+  }
   return true;
 }
 
@@ -397,6 +411,37 @@ function esc(value) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+/* ISO 8601 con offset explicito y sin milisegundos. Varios parsers ADF
+   rechazan el formato .000Z que produce Date.toISOString(). */
+function adfDate(value) {
+  const d = value ? new Date(value) : new Date();
+  const date = isNaN(d.getTime()) ? new Date() : d;
+
+  /* Zona del concesionario: America/Chicago. Workers no trae Intl completo en
+     todos los casos, asi que se calcula el offset a mano contra la parte local. */
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Chicago',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false,
+  }).formatToParts(date).reduce((acc, p) => {
+    acc[p.type] = p.value;
+    return acc;
+  }, {});
+
+  const local = Date.UTC(
+    Number(parts.year), Number(parts.month) - 1, Number(parts.day),
+    Number(parts.hour) % 24, Number(parts.minute), Number(parts.second)
+  );
+  const offsetMin = Math.round((local - date.getTime()) / 60000);
+  const sign = offsetMin < 0 ? '-' : '+';
+  const abs = Math.abs(offsetMin);
+  const oh = String(Math.floor(abs / 60)).padStart(2, '0');
+  const om = String(abs % 60).padStart(2, '0');
+
+  return `${parts.year}-${parts.month}-${parts.day}T${String(Number(parts.hour) % 24).padStart(2, '0')}:${parts.minute}:${parts.second}${sign}${oh}:${om}`;
 }
 
 function digits(value) {

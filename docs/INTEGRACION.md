@@ -15,7 +15,7 @@ formulario  →  POST /api/lead  (Cloudflare Pages Function)
                  ├─ valida otra vez, del lado servidor
                  ├─ verifica el captcha con la secret key
                  ├─ arma el ADF XML
-                 ├─ lo manda por correo a jkamalcars@ledas.neoverify.com
+                 ├─ lo manda por correo a jkamalcars@leads.neoverify.com
                  └─ copia el lead a LEAD_FORWARD_URL si está configurada
 ```
 
@@ -165,7 +165,7 @@ separadas, Preview no hereda nada. Cada cambio exige redeploy manual.
 
 | Variable | Si se deja vacía |
 |---|---|
-| `CRM_EMAIL` | `jkamalcars@ledas.neoverify.com` |
+| `CRM_EMAIL` | `jkamalcars@leads.neoverify.com` |
 | `MAIL_FROM` | `John Kamal Cars <leads@jkamalcars.com>` |
 | `MAIL_REPLY_TO` | responde al correo del cliente |
 | `RESEND_API_KEY` | no manda por Resend |
