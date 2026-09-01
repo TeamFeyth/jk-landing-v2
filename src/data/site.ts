@@ -1,5 +1,12 @@
 export const LANDING_ID = 'lp2';
 
+/* Nombre de evento propio de esta landing.
+   Las dos landings mandan el mismo evento estandar Lead al mismo dataset, y
+   hasta ahora solo se distinguian por la URL o por un parametro personalizado.
+   Meta descarta ambas cosas en datasets con restricciones de categoria, asi
+   que ese criterio dejo de funcionar. El NOMBRE del evento si sobrevive. */
+export const LEAD_EVENT_NAME = `${LANDING_ID}_lead`;
+
 // Negocio
 
 export const site = {

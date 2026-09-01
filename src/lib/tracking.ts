@@ -129,3 +129,16 @@ export function trackPixel(event: string, params: Record<string, unknown>, event
   if (typeof window.fbq !== 'function') return;
   window.fbq('track', event, params, { eventID: eventId });
 }
+
+/* Igual que trackPixel pero con trackCustom, para nombres de evento que no son
+   estandar de Meta (lp2_lead). Puede llevar el mismo eventID que el Lead: la
+   deduplicacion es por la pareja (nombre de evento, eventID), asi que dos
+   nombres distintos no se pisan entre si. */
+export function trackPixelCustom(
+  event: string,
+  params: Record<string, unknown>,
+  eventId: string
+): void {
+  if (typeof window.fbq !== 'function') return;
+  window.fbq('trackCustom', event, params, { eventID: eventId });
+}

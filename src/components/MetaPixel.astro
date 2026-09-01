@@ -1,4 +1,14 @@
 ---
+/* Pixel de Meta.
+
+   ESTE ES EL UNICO LUGAR donde se inicializa el pixel. No volver a pegar el
+   snippet de Meta en un layout ni en una pagina: el snippet oficial arranca
+   con "if (f.fbq) return", asi que el primero que corra gana y el resto se
+   ignora en silencio. Un snippet con el ID escrito a mano en el <head> deja
+   PUBLIC_META_PIXEL_ID sin efecto y nadie se entera.
+
+   Solo carga en el dominio de PUBLIC_SITE_URL, para que los deploys de
+   preview y localhost no ensucien el dataset de produccion. */
 import { META_PIXEL_ID } from '../lib/env';
 ---
 
@@ -15,13 +25,25 @@ import { META_PIXEL_ID } from '../lib/env';
 )}
 
 <script>
-  import { META_PIXEL_ID } from '../lib/env';
+  import { META_PIXEL_ID, SITE_URL } from '../lib/env';
   import { hasConsent } from '../lib/tracking';
 
   let loaded = false;
 
+  /* Sin PUBLIC_SITE_URL no se bloquea nada: se asume un solo dominio y se
+     mantiene el comportamiento anterior. */
+  function hostAutorizado(): boolean {
+    if (!SITE_URL) return true;
+    try {
+      return window.location.hostname === new URL(SITE_URL).hostname;
+    } catch {
+      return true;
+    }
+  }
+
   function loadPixel(): void {
     if (loaded || !META_PIXEL_ID || typeof window.fbq === 'function') return;
+    if (!hostAutorizado()) return;
     loaded = true;
 
     /* Snippet estandar de Meta */

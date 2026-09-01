@@ -132,9 +132,9 @@ const selectFields = [
 <script>
   import { formatPhone, isValidChoice, isValidEmail, isValidName, isValidPhone } from '../lib/validation';
   import { buildPayload, getCaptchaToken, resetCaptcha, submitLead } from '../lib/leads';
-  import { redirectToThankYou, thankYouPath } from '../data/site';
+  import { LEAD_EVENT_NAME, redirectToThankYou, thankYouPath } from '../data/site';
   import type { LeadSource } from '../lib/leads';
-  import { captureAttribution, trackPixel } from '../lib/tracking';
+  import { captureAttribution, trackPixel, trackPixelCustom } from '../lib/tracking';
 
   captureAttribution();
 
@@ -238,7 +238,12 @@ const selectFields = [
           return;
         }
 
+        // Lead estandar (el que optimizan las campanas) + evento propio de la
+        // landing. Ver el comentario en /thank-you: la URL y los parametros
+        // personalizados no sobreviven a las restricciones de categoria, el
+        // nombre del evento si.
         trackPixel('Lead', { content_category: source }, payload.event_id);
+        trackPixelCustom(LEAD_EVENT_NAME, { content_category: source }, payload.event_id);
 
         form.style.display = 'none';
         if (successBox) successBox.dataset.visible = 'true';

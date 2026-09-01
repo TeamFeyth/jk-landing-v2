@@ -24,24 +24,13 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- Meta Pixel Code -->
-    <script is:inline>
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '1042412788159075');
-      fbq('track', 'PageView');
-    </script>
-    <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=1042412788159075&ev=PageView&noscript=1"
-    /></noscript>
-    <!-- End Meta Pixel Code -->
-
+    {
+      /* El pixel de Meta vive SOLO en <MetaPixel />, al final del <body>.
+         Esta pagina no usa Base.astro, asi que tenia su propia copia del
+         snippet con el ID escrito a mano. Al quitarla, fbq ya no existe
+         durante el parseo del <head>: el script que dispara el Lead, mas
+         abajo, tiene un reintento para eso. */
+    }
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{copy.title}</title>
@@ -123,6 +112,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
 </html>
 
 <script>
+  import { LEAD_EVENT_NAME } from '../data/site';
+
   const params = new URLSearchParams(window.location.search);
   const source = params.get('source') ?? 'unknown';
   const eventId = params.get('eid') ?? '';
@@ -146,18 +137,32 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     }
   }
 
-  // Un solo evento Lead. El eventID es el mismo que va en el ADF, para que la
-  // CAPI pueda deduplicar. Recargar la pagina no vuelve a contarlo.
+  // El eventID es el mismo que va en el ADF, para que la CAPI pueda deduplicar.
+  // Recargar la pagina no vuelve a contarlo.
   function disparar(): boolean {
     if (yaDisparado()) return true;
 
     const fbq = window.fbq;
     if (typeof fbq !== 'function') return false;
 
+    // Lead estandar: es contra el que optimizan las campanas y el que ya tiene
+    // historico en el dataset. No se toca.
+    //
+    // LEAD_EVENT_NAME (lp2_lead) es el que identifica la landing. Las dos
+    // landings mandan Lead al mismo dataset y antes solo se distinguian por el
+    // path /thank-you o por el parametro source; Meta descarta las dos cosas
+    // en datasets con restricciones de categoria, asi que las conversiones
+    // personalizadas por URL dejaron de contar. El nombre del evento no es un
+    // parametro de URL y si sobrevive.
+    //
+    // Va el mismo eventID en ambos a proposito: Meta deduplica por la pareja
+    // (nombre de evento, eventID), asi que dos nombres distintos no se pisan.
     if (eventId) {
       fbq('track', 'Lead', { content_category: source }, { eventID: eventId });
+      fbq('trackCustom', LEAD_EVENT_NAME, { content_category: source }, { eventID: eventId });
     } else {
       fbq('track', 'Lead', { content_category: source });
+      fbq('trackCustom', LEAD_EVENT_NAME, { content_category: source });
     }
 
     marcar();
@@ -165,7 +170,19 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
   }
 
   if (!disparar()) {
-    // El pixel puede llegar despues de que se acepten las cookies
-    document.addEventListener('jk:consent', () => window.setTimeout(disparar, 300));
+    /* Antes el pixel se inicializaba de forma sincrona en el <head> de esta
+       pagina, asi que fbq siempre existia para cuando corria este script y
+       bastaba con escuchar el consentimiento. Ahora lo carga <MetaPixel />,
+       que es un script de modulo y corre despues del parseo: si el usuario ya
+       tenia el consentimiento dado, no habra ningun evento jk:consent que
+       esperar y el Lead se perderia. De ahi el reintento. */
+    let intentos = 0;
+    const timer = window.setInterval(() => {
+      if (disparar() || ++intentos >= 20) window.clearInterval(timer);
+    }, 250);
+
+    document.addEventListener('jk:consent', () => {
+      if (disparar()) window.clearInterval(timer);
+    });
   }
 </script>
