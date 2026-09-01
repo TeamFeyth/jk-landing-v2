@@ -2,7 +2,26 @@ import { REQUIRE_COOKIE_CONSENT } from './env';
 
 const ATTR_KEY = 'jk_attr_v2';
 const CONSENT_KEY = 'jk_consent_v2';
-const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'] as const;
+const UTM_KEYS = [
+  'utm_source',
+  'utm_medium',
+  'utm_campaign',
+  'utm_content',
+  'utm_term',
+  /* utm_id lleva el ID de campana de Meta ({{campaign.id}}). Es la unica llave
+     de cruce que sobrevive a que renombren la campana, asi que vale mas que
+     utm_campaign para pegar contra el export de Ads Manager. */
+  'utm_id',
+] as const;
+
+/* Parametros que no son utm_ pero que la campana si manda en la URL.
+   adset y placement salen del "Build a URL parameter" de Meta.
+   gclid / gbraid / wbraid los pone Google Ads solo, sin configurar nada.
+
+   Esto estaba en lp1 pero no aqui, asi que los leads de esta landing llegaban
+   a la hoja sin ad set ni placement y no habia forma de saber que anuncio los
+   trajo. */
+const AD_KEYS = ['adset', 'placement', 'gclid', 'gbraid', 'wbraid'] as const;
 
 export type Attribution = {
   fbclid: string;
@@ -10,7 +29,8 @@ export type Attribution = {
   fbp: string;
   landing_url: string;
   referrer: string;
-} & Record<(typeof UTM_KEYS)[number], string>;
+} & Record<(typeof UTM_KEYS)[number], string> &
+  Record<(typeof AD_KEYS)[number], string>;
 
 // Consentimiento
 
@@ -60,6 +80,12 @@ function emptyAttribution(): Attribution {
     utm_campaign: '',
     utm_content: '',
     utm_term: '',
+    utm_id: '',
+    adset: '',
+    placement: '',
+    gclid: '',
+    gbraid: '',
+    wbraid: '',
   };
 }
 
@@ -86,6 +112,11 @@ export function captureAttribution(): Attribution {
   const params = new URLSearchParams(window.location.search);
 
   for (const key of UTM_KEYS) {
+    const incoming = params.get(key);
+    if (incoming) stored[key] = incoming;
+  }
+
+  for (const key of AD_KEYS) {
     const incoming = params.get(key);
     if (incoming) stored[key] = incoming;
   }

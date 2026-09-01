@@ -26,6 +26,12 @@ export type LeadPayload = {
   utm_campaign: string;
   utm_content: string;
   utm_term: string;
+  utm_id: string;
+  adset: string;
+  placement: string;
+  gclid: string;
+  gbraid: string;
+  wbraid: string;
   captcha_token: string;
   test: string;
 };
@@ -105,6 +111,12 @@ export function buildPayload(input: LeadInput, captchaToken: string): LeadPayloa
     utm_campaign: attribution.utm_campaign,
     utm_content: attribution.utm_content,
     utm_term: attribution.utm_term,
+    utm_id: attribution.utm_id,
+    adset: attribution.adset,
+    placement: attribution.placement,
+    gclid: attribution.gclid,
+    gbraid: attribution.gbraid,
+    wbraid: attribution.wbraid,
     captcha_token: captchaToken,
     test: new URLSearchParams(window.location.search).get('jk_test') === '1' ? '1' : '',
   };
