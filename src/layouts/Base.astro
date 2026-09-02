@@ -12,7 +12,7 @@ import CookieConsent from '../components/CookieConsent.astro';
 import FloatingCall from '../components/FloatingCall.astro';
 import MetaPixel from '../components/MetaPixel.astro';
 import Captcha from '../components/Captcha.astro';
-import { ALLOW_INDEXING } from '../lib/env';
+import { ALLOW_INDEXING, FB_DOMAIN_VERIFICATION } from '../lib/env';
 import { site, meta } from '../data/site';
 
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
@@ -31,6 +31,9 @@ const ogImage = new URL(meta.ogImage, Astro.site).href;
          No volver a pegarlo aqui. */
     }
     <meta charset="utf-8" />
+    {FB_DOMAIN_VERIFICATION && (
+      <meta name="facebook-domain-verification" content={FB_DOMAIN_VERIFICATION} />
+    )}
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{meta.title}</title>
     <meta name="description" content={meta.description} />
